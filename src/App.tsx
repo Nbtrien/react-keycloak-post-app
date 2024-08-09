@@ -1,26 +1,57 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
+import PrivateRoute from "./PrivateRoute";
+import Home from "./views/Home";
+import Dashboard from "./views/Dashboard";
+import "./App.css";
+import { ReactKeycloakProvider } from "@react-keycloak/web";
+import keycloak from "./keycloak/keycloak";
+import AdminRoute from "./AdminRoute";
+import { AdminRoutes, UserRoutes } from "./routes";
+import UserRoute from "./UserRoute";
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ReactKeycloakProvider authClient={keycloak}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route>
+            {UserRoutes.map((item, index) => (
+              <Route
+                key={index}
+                path={item.path}
+                element={<UserRoute>{<item.element />}</UserRoute>}
+              />
+            ))}
+          </Route>
+          <Route>
+            {AdminRoutes.map((item, index) => (
+              <Route
+                key={index}
+                path={item.path}
+                element={<AdminRoute>{<item.element />}</AdminRoute>}
+              />
+            ))}
+          </Route>
+          <Route path="/*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ReactKeycloakProvider>
   );
-}
+};
 
 export default App;
